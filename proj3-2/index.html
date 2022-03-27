@@ -1,7 +1,168 @@
-<html>
-	<head>
-	</head>
-	<body>
-		Project 3-2 here
-	</body>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+    <style>
+        body {
+            padding: 100px;
+            width: 1000px;
+            margin: auto;
+            text-align: left;
+            font-weight: 300;
+            font-family: 'Open Sans', sans-serif;
+            color: #121212;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Source Sans Pro', sans-serif;
+        }
+
+        img.displayed {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 20px;
+        }
+
+        tr>td {
+            padding-bottom: 20px;
+            padding-top: 20px;
+        }
+    </style>
+    <title>CS 184 Path Tracer</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans|Source+Sans+Pro" rel="stylesheet">
+</head>
+
+
+<body>
+
+    <h1 align="middle">CS 184: Computer Graphics and Imaging, Spring 2022</h1>
+    <h1 align="middle">Project 3-2: Path Tracer</h1>
+    <h2 align="middle">Edmond Fang and Brian Wu</h2>
+
+    <br><br>
+    <a
+        href="https://cal-cs184-student.github.io/sp22-project-webpages-seikurou/proj3-2/index.html">https://cal-cs184-student.github.io/sp22-project-webpages-seikurou/proj3-2/index.html</a>
+    <div>
+
+        <h2 align="middle">Overview</h2>
+        <p>
+            In this project, we implemented additoinal features into the path tracer, including modeling mirror and
+            glass materials by modeling their BSDFs and depth of field by modeling a basic thin-lens that has a given
+            diameter and focal distance.
+        </p>
+        <p>
+            In our collaboration, we
+        </p>
+
+
+        <h2 align="middle">Part 1: Mirror and Glass Materials</h2>
+
+
+        <h2 align="middle">Part 4: Depth of Field</h2>
+
+        <p>
+            In the pinhole camera model, all the light that hits the sensor passes through a single point that is
+            infinitely small. This means everything in the scene is in focus. But in the thin-lens camera model, light
+            that hits a given point on the image sensor could have come from any part of the lens, not just a single
+            point. In addition, rays that pass through the lens may be refracted and change direction, instead of just
+            passing directly through. This property can result in a depth of field effect, where only a part of the
+            image is in focus.
+        </p>
+        <p>
+            In our implementation of the thin-lens model, we still sample one pixel on the image sensor at a time.
+            Instead of tracing rays directly into the scene through the pinhole point (0,0,0), we trace the ray through
+            a randomly chosen point on the lens, determine the refraction, then trace the point on the lens into the
+            scene as before. To find refraction, we first determine the point on the plane of focus corresponding to the
+            point on the image plane by casting a ray from the point on the image plane through the origin onto the
+            plane of focus (rays that go through the center of the lens do not refract). This point on the plane of
+            focus is the direction into the scene that the point on the lens should be traced.
+        </p>
+        <div align="middle">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/4.f.1.png" width="480px" />
+                        <figcaption align="middle">Edge of bottom wall in focus.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/4.f.2.png" width="480px" />
+                        <figcaption align="middle">Glass ball in focus.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/4.f.3.png" width="480px" />
+                        <figcaption align="middle">Mirror ball in focus.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/4.f.4.png" width="480px" />
+                        <figcaption align="middle">Back corner of red wall in focus.</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <p>
+            By adjusting the focal distance, we move the plane of focus and the depth of view such that only some parts
+            of the scene are in focus, as described in the captions. For a given pixel on the image sensor, we can draw
+            all the rays can refract
+            through the lens to get a double cone. If all the rays hit the intersection point of these cones (on the
+            plane of focus), then that pixel will be drawn perfectly in focus. Otherwise, the intersection of the cones
+            and the scene will have some nontrivial area, meaning that the pixel is composed of multiple points in the
+            scene, which creates a blurring effect.
+        </p>
+        <img class="displayed" src="images/4.cones.jpg" width="480px" />
+        <figcaption align="middle">Double cones, as shown by the red lines. Source: Pixinfocus.com</figcaption>
+
+        <div align="middle">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/4.a.1.png" width="480px" />
+                        <figcaption align="middle">Lens radius: 0.00.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/4.a.2.png" width="480px" />
+                        <figcaption align="middle">Lens radius: 0.05.</figcaption>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/4.a.3.png" width="480px" />
+                        <figcaption align="middle">Lens radius: 0.10.</figcaption>
+                    </td>
+                    <td>
+                        <img src="images/4.a.4.png" width="480px" />
+                        <figcaption align="middle">Lens radius: 0.20.</figcaption>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <p>
+            By adjusting the aperture, we effectively are able to cast more rays into the scene, increasing exposure.
+            In practice for this pathtracer, as we increase the aperture size, the blurring effect becomes more
+            pronounced. To see why, we go back to the discussion in the previous paragraph and observe the double cones
+            that are drawn by casting rays from a pixel on the image sensor onto all parts of the lens and refracted
+            into the scene. By increasing
+            the aperture size, we increase the size of the lens, creating a set of "fatter" cones. The effect is that
+            the
+            same offset from the plane of focus will intersect a larger area of the scene, creating more blur for a
+            given pixel--the pixel is composed of a larger part of the scene. In more technical terms, we have increased
+            the circle of confusion and decreased the depth of view.
+        </p>
+        <p>
+            Notice that for lens radius of 0, everything is in focus because this is effectively a pinhole camera where
+            the cones are infinitely thin.
+        </p>
+
+
+    </div>
+
+</body>
+
 </html>
