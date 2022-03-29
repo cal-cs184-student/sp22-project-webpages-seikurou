@@ -31,6 +31,10 @@
             padding-bottom: 20px;
             padding-top: 20px;
         }
+
+        li {
+            padding-top: 20px;
+        }
     </style>
     <title>CS 184 Path Tracer</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -56,11 +60,119 @@
             diameter and focal distance.
         </p>
         <p>
-            In our collaboration, we
+            In our collaboration, we sat next to each other and pair programmed.
+            We would both read through the spec, then one person would code while the other would check for mistakes.
+            It went great.
+            We learned that thoroughly reading the spec is quite helpful.
         </p>
 
 
         <h2 align="middle">Part 1: Mirror and Glass Materials</h2>
+
+        <p>
+            To implement reflection, we constructed the reflection vector based on the x, y, and z directions of the incoming vector, which is just (-x, -y, z).
+            To implement mirror materials, we use our reflection implementation. The PDF here is 1, because the sampled direction is the same every time. We also divide out the Lambertian cosine term since everything is reflected back.
+            To implement refraction, we follow the refraction equations derived from Snell's Law to determine how refracted rays behave given the index of refraction, transmittance, the direction of ray, and whether it is entering or exiting.
+            To implement glass materials, we use both our reflection and refraction implementations, randomly reflecting some rays and refracting others using Schlick's approximation to determine these probabilities.
+        </p>
+
+        <div align="middle">
+            <table style="width=100%">
+                <tr>
+                    <td>
+                        <img src="images/CBspheres_0.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=0</figcaption>
+                        <p>
+                            We can only see the light source.
+                            The only rays with no bounces go directly from light source to camera.
+                        </p>
+                    </td>
+                    <td>
+                        <img src="images/CBspheres_1.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=1</figcaption>
+                        <p>
+                            <li>
+                                We can now see the outline of the spheres, (1) the reflection of the light source on the spheres, and (2) the walls.
+                            </li>
+                            <li>
+                                (1) Rays from light source bounce off spheres and into the camera.
+                            </li>
+                            <li>
+                                (2) Rays bounce off the walls into the camera.
+                            </li>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/CBspheres_2.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=2</figcaption>
+                        <p>
+                            <li>
+                                We now see (1) reflections of objects in the spheres and (2) light on the ceiling. 
+                            </li>
+                            <li>
+                                (1) Rays from light source [1] bounce off the walls, then [2] bounce off the spheres, before going into the camera.
+                            </li>
+                            <li>
+                                (2) Rays from the light source [1] bounce off objects in the scene, [2] bounce off the ceiling, then travel towards the camera.
+                            </li>
+                        </p>
+                    </td>
+                    <td>
+                        <img src="images/CBspheres_3.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=3</figcaption>
+                        <p>
+                            <li>
+                                We see (1) refraction (in the glass sphere), (2) ceiling illumination in the mirror sphere's reflection, and (3) a glow on the shadow of the glass sphere.
+                            </li>
+                            <li>
+                                (1) Rays from light source [1] bounce off the walls, [2] hit and enter the glass sphere, [3] go through and exit the glass sphere, then travel towards the camera.
+                            </li>
+                            <li>
+                                (2) Rays from light source [1] bounce off the walls/floor, [2] hit the ceiling, [3] hit the mirror sphere, then travel towards the camera.
+                            </li>
+                            <li>
+                                (3) Rays from light source [1] hit and enter the glass sphere, [2] go through and exit the glass sphere, [3] hit the floor, then travel towards the camera.
+                            </li>
+                        </p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/CBspheres_4.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=4</figcaption>
+                        <p>
+                            <li>
+                                We see (1) reflection of refraction (the reflection of the glass ball in the mirror ball), (2) the glass sphere's glow on the wall, and (3) reflections on the bottom of the glass sphere .
+                            </li>
+                            <li>
+                                (1) Rays from light source [1] bounce off the walls, [2] hit and enter the glass sphere, [3] go through and exit the glass sphere, [4] bounce off the mirror sphere, then travel towards the camera.
+                            </li>
+                            <li>
+                                (2) Rays from light source [1] bounce off the mirror sphere, [2] hit and enter the glass sphere, [3] go through and exit the glass sphere, [4] hit the wall, then travel towards the camera.
+                            </li>
+                            <li>
+                                (3) Rays from light source [1] hit and enter the glass sphere, [2] go through and exit the glass sphere, [3] hit the floor, [4] reflect off the glass sphere, then travel towards the camera.
+                            </li>
+
+                        </p>
+                    </td>
+                    <td>
+                        <img src="images/CBspheres_5.png" width="480px" />
+                        <figcaption align="middle">max_ray_depth=5</figcaption>
+                        <p>The image is a bit brighter in some parts (e.g. top part of glass sphere) because we're accumulating more light from more bounces, but there are no noticeable new effects. The overall scene is brighter.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <img src="images/CBspheres_100.png" width="100%" />
+                        <figcaption align="middle">max_ray_depth=100</figcaption>
+                        <p>No significant difference. The overall scene is brighter due to further bounces.</p>
+                    </td>
+                </tr>
+            </table>
+        </div>
 
 
         <h2 align="middle">Part 4: Depth of Field</h2>
@@ -110,7 +222,7 @@
         <p>
             By adjusting the focal distance, we move the plane of focus and the depth of view such that only some parts
             of the scene are in focus, as described in the captions. For a given pixel on the image sensor, we can draw
-            all the rays can refract
+            all the rays from the pixel that can refract
             through the lens to get a double cone. If all the rays hit the intersection point of these cones (on the
             plane of focus), then that pixel will be drawn perfectly in focus. Otherwise, the intersection of the cones
             and the scene will have some nontrivial area, meaning that the pixel is composed of multiple points in the
